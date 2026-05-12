@@ -1,5 +1,5 @@
 const TARGET_SELECTOR = "div._83309bd4._6e63fa0b.d343d86c";
-const API_URL         = "http://portal.globalleadersinc.com/api/v1/linkedin-profile-hunter";
+const API_URL         = "https://portal.globalleadersinc.com/api/v1/linkedin-profile-hunter";
 
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -25,8 +25,8 @@ const steps = [
   document.getElementById("step4"),
 ];
 
-let foundCount   = 0;
-let lastResult   = "";
+let foundCount = 0;
+let lastResult = "";
 
 // ── Scan helpers ──────────────────────────────────────────────────────────────
 
@@ -118,26 +118,26 @@ function setProgress(pct, label, transitionMs = 600) {
 
 function activateStep(index) {
   steps.forEach((s, i) => {
-    if (i < index)       s.className = "step done";
+    if (i < index)        s.className = "step done";
     else if (i === index) s.className = "step active";
-    else                 s.className = "step";
+    else                  s.className = "step";
   });
 }
 
 // ── Result rendering ──────────────────────────────────────────────────────────
 
-function renderResult(text) {
+function renderResult(created, skipped) {
   resultBody.innerHTML = "";
 
-  // Try to parse "Name | Country | LinkedIn URL" rows
-  const lines = text.trim().split("\n").filter((l) => l.trim());
-  const parsed = lines.map((line) => {
-    const parts = line.split("|").map((p) => p.trim());
-    return parts.length >= 3 ? parts : null;
-  }).filter(Boolean);
+  const buildSection = (title, profiles) => {
+    if (!profiles.length) return;
 
-  if (parsed.length > 0) {
-    parsed.forEach(([name, country, url]) => {
+    const heading = document.createElement("div");
+    heading.className = "result-section-title";
+    heading.textContent = `${title} (${profiles.length})`;
+    resultBody.appendChild(heading);
+
+    profiles.forEach(({ name, country, url }) => {
       const row = document.createElement("div");
       row.className = "result-row";
 
@@ -152,24 +152,17 @@ function renderResult(text) {
       const linkEl = document.createElement("a");
       linkEl.className = "result-link";
       linkEl.textContent = "View";
-      if (url.startsWith("http")) {
-        linkEl.href   = url;
-        linkEl.target = "_blank";
-        linkEl.rel    = "noopener";
-      } else {
-        linkEl.textContent = url;
-      }
+      linkEl.href   = url;
+      linkEl.target = "_blank";
+      linkEl.rel    = "noopener";
 
       row.append(nameEl, countryEl, linkEl);
       resultBody.appendChild(row);
     });
-  } else {
-    // Fallback: show raw text
-    const pre = document.createElement("div");
-    pre.className = "result-raw";
-    pre.textContent = text;
-    resultBody.appendChild(pre);
-  }
+  };
+
+  buildSection("Added to Trello", created);
+  buildSection("Already Exists", skipped);
 
   resultSection.style.display = "flex";
 }
@@ -198,10 +191,9 @@ async function hunt() {
         if (!els.length) return null;
 
         return Array.from(els).map((el) => {
-          // Collect unique LinkedIn profile URLs from the element
           const links = [...new Set(
             [...el.querySelectorAll('a[href*="/in/"]')]
-              .map((a) => a.href.split("?")[0])   // drop tracking params
+              .map((a) => a.href.split("?")[0])
               .filter((h) => /linkedin\.com\/in\//i.test(h))
           )];
 
@@ -228,7 +220,7 @@ async function hunt() {
   setProgress(30, "Sending to AI…", 400);
 
   // ── Step 2: Call API ───────────────────────────────────────────────────────
-  // Slowly walk bar to ~75% while waiting for OpenAI (typically 5-15s)
+  // FIX: was clearTimeout(crawl) but crawlProgress returns setInterval ID — must use clearInterval
   const crawl = crawlProgress(35, 75, 12000);
 
   let apiData;
@@ -238,7 +230,7 @@ async function hunt() {
 
     const res = await fetch(API_URL, { method: "POST", body: form });
 
-    clearTimeout(crawl);
+    clearInterval(crawl); // FIX: was clearTimeout — interval was never stopping
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -247,7 +239,7 @@ async function hunt() {
 
     apiData = await res.json();
   } catch (err) {
-    clearTimeout(crawl);
+    clearInterval(crawl); // FIX: was clearTimeout
     return huntFailed("Network error — check your connection");
   }
 
@@ -259,38 +251,23 @@ async function hunt() {
   activateStep(2);
   setProgress(90, "Processing profiles…", 300);
 
-  const resultText = apiData?.data?.response ?? "";
+  const created = apiData?.data?.created ?? [];
+  const skipped = apiData?.data?.skipped ?? [];
 
-  if (!resultText) {
-    return huntFailed("API returned empty response");
+  if (!created.length && !skipped.length) {
+    return huntFailed("No profiles found");
   }
 
   await new Promise((r) => setTimeout(r, 350));
 
-  // ── Step 4: Copy to clipboard ──────────────────────────────────────────────
+  // ── Step 4: Done ───────────────────────────────────────────────────────────
   activateStep(3);
   setProgress(100, "Ready to paste!", 300);
 
-  try {
-    await navigator.clipboard.writeText(resultText);
-  } catch {
-    // fallback
-    const ta = Object.assign(document.createElement("textarea"), {
-      value: resultText,
-      style: "position:fixed;left:-9999px",
-    });
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-  }
-
-  lastResult = resultText;
-
   await new Promise((r) => setTimeout(r, 400));
 
-  renderResult(resultText);
-  showToast("Profiles copied — just paste anywhere!");
+  renderResult(created, skipped);
+  showToast(`${created.length} added · ${skipped.length} skipped`);
   copyBtn.classList.add("success");
   btnLabel.textContent = "✓  Hunt again";
   copyBtn.disabled = false;
