@@ -1,0 +1,496 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 340px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f3f6fb;
+  color: #1a1a2e;
+}
+
+/* ── Popup shell ─────────────────────────────────────────────────── */
+.popup {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(10, 102, 194, 0.18);
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 14px;
+  background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  top: -60px;
+  right: -40px;
+  pointer-events: none;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.brand-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 1px;
+}
+
+/* Live status dot */
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background 0.3s, box-shadow 0.3s;
+  flex-shrink: 0;
+}
+
+.dot.active {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.3);
+  animation: pulse 2s infinite;
+}
+
+.dot.inactive { background: #f87171; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.1); }
+}
+
+/* ── Body ────────────────────────────────────────────────────────── */
+.body {
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #ffffff;
+}
+
+/* Scan row */
+.scan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scan-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+}
+
+.scan-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scan-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  transition: color 0.2s;
+}
+
+.scan-text.found    { color: #16a34a; }
+.scan-text.notfound { color: #dc2626; }
+
+/* Spinner */
+.scan-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid #d1d5db;
+  border-top-color: #0a66c2;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.scan-spinner.hidden { display: none; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* Selector pill */
+.selector-block {
+  background: #f8fafc;
+  border: 1px solid #e5eaf0;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.selector-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.selector-value {
+  font-size: 11px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #0a66c2;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+/* ── Hunt button ─────────────────────────────────────────────────── */
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0a66c2 0%, #0055a5 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35);
+}
+
+.copy-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  transition: background 0.15s;
+}
+
+.copy-btn:hover:not(:disabled)::after  { background: rgba(255, 255, 255, 0.08); }
+.copy-btn:active:not(:disabled)        { transform: scale(0.97); box-shadow: 0 2px 8px rgba(10, 102, 194, 0.3); }
+
+.copy-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.copy-btn.success {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.copy-btn.error {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+}
+
+.btn-icon { flex-shrink: 0; transition: transform 0.2s; }
+.copy-btn:hover:not(:disabled) .btn-icon { transform: translateY(-1px) scale(1.05); }
+
+/* ── Progress section ────────────────────────────────────────────── */
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.progress-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0a66c2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Track + bar */
+.progress-track {
+  height: 6px;
+  background: #e9eef5;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #0a66c2, #38bdf8);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* shimmer on the bar */
+.progress-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 60% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.progress-bar.done {
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.progress-bar.done::after { animation: none; }
+
+/* Step indicators */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.step.active .step-dot {
+  background: #0a66c2;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.2);
+}
+
+.step.done .step-dot {
+  background: #16a34a;
+  box-shadow: none;
+}
+
+.step-text {
+  font-size: 9px;
+  color: #9ca3af;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.step.active .step-text { color: #0a66c2; font-weight: 600; }
+.step.done  .step-text  { color: #16a34a; }
+
+/* ── Result section ──────────────────────────────────────────────── */
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #374151;
+}
+
+.clipboard-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 3px 8px;
+}
+
+.result-body {
+  background: #f8fafc;
+  border: 1px solid #e5eaf0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.result-body::-webkit-scrollbar       { width: 4px; }
+.result-body::-webkit-scrollbar-track { background: transparent; }
+.result-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.result-row:last-child { border-bottom: none; }
+
+.result-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-country {
+  color: #6b7280;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.result-link {
+  color: #0a66c2;
+  text-decoration: none;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.result-link:hover { text-decoration: underline; }
+
+.result-raw {
+  font-size: 11px;
+  color: #374151;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+/* Re-copy button */
+.recopy-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-end;
+  padding: 5px 10px;
+  border: 1px solid #d1d9e6;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.recopy-btn:hover {
+  background: #f0f4ff;
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+.toast {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  min-height: 16px;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.toast.visible { opacity: 1; }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.footer {
+  padding: 9px 18px 10px;
+  background: #f8fafc;
+  border-top: 1px solid #edf0f4;
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.footer-hl {
+  color: #0a66c2;
+  font-weight: 600;
+}

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-Content \"D:\\\\linkedin profile hunting\\\\linkedin_profile_hunting\\\\popup.js\" -Raw)"
+    ]
+  }
+}

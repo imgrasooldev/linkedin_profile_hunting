@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LinkedIn Profile Hunter</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136
+              2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267
+              5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063
+              2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0
+              1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24
+              22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Profile Hunter</div>
+          <div class="brand-sub">LinkedIn Copier</div>
+        </div>
+      </div>
+      <div class="dot" id="dot"></div>
+    </header>
+
+    <!-- ── Body ── -->
+    <div class="body">
+
+      <!-- Scan status row -->
+      <div class="scan-row">
+        <span class="scan-label">Page scan</span>
+        <div class="scan-result">
+          <span class="scan-spinner" id="spinner"></span>
+          <span class="scan-text" id="scanText">Scanning…</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Target selector pill -->
+      <div class="selector-block">
+        <div class="selector-label">Target selector</div>
+        <div class="selector-value" id="selectorValue">div._83309bd4._6e63fa0b.d343d86c</div>
+      </div>
+
+      <!-- Hunt button -->
+      <button class="copy-btn" id="copyBtn" disabled>
+        <svg class="btn-icon" id="btnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span id="btnLabel">Hunt Profiles</span>
+      </button>
+
+      <!-- ── Progress section (hidden until hunt starts) ── -->
+      <div class="progress-section" id="progressSection" style="display:none">
+        <div class="progress-header">
+          <span class="progress-step-label" id="stepLabel">Extracting HTML…</span>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-steps">
+          <div class="step" id="step1">
+            <span class="step-dot"></span>
+            <span class="step-text">Extract HTML</span>
+          </div>
+          <div class="step" id="step2">
+            <span class="step-dot"></span>
+            <span class="step-text">Send to AI</span>
+          </div>
+          <div class="step" id="step3">
+            <span class="step-dot"></span>
+            <span class="step-text">Process profiles</span>
+          </div>
+          <div class="step" id="step4">
+            <span class="step-dot"></span>
+            <span class="step-text">Ready to paste</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Result section (hidden until success) ── -->
+      <div class="result-section" id="resultSection" style="display:none">
+        <div class="result-header">
+          <span class="result-title">Extracted Profiles</span>
+          <span class="clipboard-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            In clipboard
+          </span>
+        </div>
+        <div class="result-body" id="resultBody"></div>
+        <button class="recopy-btn" id="recopyBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy again
+        </button>
+      </div>
+
+      <!-- Toast feedback -->
+      <div class="toast" id="toast"></div>
+
+    </div>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+      Only active on <span class="footer-hl">linkedin.com</span>
+    </footer>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
