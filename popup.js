@@ -1,4 +1,4 @@
-const TARGET_SELECTOR = "div._83309bd4._6e63fa0b.d343d86c";
+const TARGET_SELECTOR = "main";
 const API_URL         = "https://portal.globalleadersinc.com/api/v1/linkedin-profile-hunter";
 
 
