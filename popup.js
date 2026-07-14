@@ -1,5 +1,6 @@
 const TARGET_SELECTOR = "main";
 const API_URL         = "https://portal.globalleadersinc.com/api/v1/linkedin-profile-hunter";
+const BOARDS_URL      = "https://portal.globalleadersinc.com/api/v1/trello/boards";
 
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -18,6 +19,10 @@ const resultSection   = document.getElementById("resultSection");
 const resultBody      = document.getElementById("resultBody");
 const recopyBtn       = document.getElementById("recopyBtn");
 
+const boardSelect   = document.getElementById("boardSelect");
+const boardRefresh  = document.getElementById("boardRefresh");
+const rememberBoard = document.getElementById("rememberBoard");
+
 const steps = [
   document.getElementById("step1"),
   document.getElementById("step2"),
@@ -27,6 +32,86 @@ const steps = [
 
 let foundCount = 0;
 let lastResult = "";
+let scanOk     = false;
+
+// ── Trello board picker ───────────────────────────────────────────────────────
+// Boards come live from the portal (which reads Trello), so newly created
+// boards appear here automatically. The selection can be remembered in
+// chrome.storage until the user picks a different board.
+
+function updateHuntEnabled() {
+  copyBtn.disabled = !(scanOk && boardSelect.value);
+}
+
+async function loadBoards() {
+  boardSelect.disabled = true;
+  boardSelect.innerHTML = '<option value="">Loading boards…</option>';
+  updateHuntEnabled();
+
+  let boards = [];
+  try {
+    const res = await fetch(BOARDS_URL);
+    const json = await res.json();
+    if (!res.ok || !json?.success) throw new Error(json?.message || `HTTP ${res.status}`);
+    boards = json.data || [];
+  } catch (err) {
+    boardSelect.innerHTML = '<option value="">Couldn\'t load boards — retry ↻</option>';
+    return;
+  }
+
+  if (!boards.length) {
+    boardSelect.innerHTML = '<option value="">No boards found</option>';
+    return;
+  }
+
+  const { savedBoardId, savedBoardRemember } = await chrome.storage.local.get([
+    "savedBoardId",
+    "savedBoardRemember",
+  ]).then((s) => ({
+    savedBoardId: s.savedBoardId || "",
+    savedBoardRemember: !!s.savedBoardRemember,
+  }));
+
+  boardSelect.innerHTML = '<option value="">Select a board…</option>';
+  boards.forEach(({ id, name }) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = name;
+    boardSelect.appendChild(opt);
+  });
+
+  rememberBoard.checked = savedBoardRemember;
+
+  // Restore the remembered board only if it still exists on Trello.
+  if (savedBoardRemember && boards.some((b) => b.id === savedBoardId)) {
+    boardSelect.value = savedBoardId;
+  }
+
+  boardSelect.disabled = false;
+  updateHuntEnabled();
+}
+
+async function persistBoardChoice() {
+  if (rememberBoard.checked && boardSelect.value) {
+    await chrome.storage.local.set({
+      savedBoardId: boardSelect.value,
+      savedBoardRemember: true,
+    });
+  } else {
+    await chrome.storage.local.set({
+      savedBoardId: "",
+      savedBoardRemember: rememberBoard.checked,
+    });
+  }
+}
+
+boardSelect.addEventListener("change", () => {
+  persistBoardChoice();
+  updateHuntEnabled();
+});
+
+rememberBoard.addEventListener("change", persistBoardChoice);
+boardRefresh.addEventListener("click", loadBoards);
 
 // ── Scan helpers ──────────────────────────────────────────────────────────────
 
@@ -39,7 +124,8 @@ function setScanning() {
   scanText.textContent = "Scanning…";
   scanText.className = "scan-text";
   setDot("");
-  copyBtn.disabled = true;
+  scanOk = false;
+  updateHuntEnabled();
 }
 
 function setInactive(msg) {
@@ -47,7 +133,8 @@ function setInactive(msg) {
   scanText.textContent = msg;
   scanText.className = "scan-text notfound";
   setDot("inactive");
-  copyBtn.disabled = true;
+  scanOk = false;
+  updateHuntEnabled();
 }
 
 function setFound(count) {
@@ -55,7 +142,8 @@ function setFound(count) {
   scanText.textContent = `${count} element${count !== 1 ? "s" : ""} found`;
   scanText.className = "scan-text found";
   setDot("active");
-  copyBtn.disabled = false;
+  scanOk = true;
+  updateHuntEnabled();
 }
 
 function setNotFound() {
@@ -63,7 +151,8 @@ function setNotFound() {
   scanText.textContent = "No elements found";
   scanText.className = "scan-text notfound";
   setDot("inactive");
-  copyBtn.disabled = true;
+  scanOk = false;
+  updateHuntEnabled();
 }
 
 // ── Page scan ─────────────────────────────────────────────────────────────────
@@ -172,6 +261,11 @@ function renderResult(created, skipped) {
 copyBtn.addEventListener("click", hunt);
 
 async function hunt() {
+  if (!boardSelect.value) {
+    showToast("Select a Trello board first");
+    return;
+  }
+
   copyBtn.disabled = true;
   resultSection.style.display = "none";
   showProgress();
@@ -227,6 +321,7 @@ async function hunt() {
   try {
     const form = new FormData();
     form.append("prompt", htmlPayload);
+    form.append("board_id", boardSelect.value);
 
     const res = await fetch(API_URL, { method: "POST", body: form });
 
@@ -270,7 +365,7 @@ async function hunt() {
   showToast(`${created.length} added · ${skipped.length} skipped`);
   copyBtn.classList.add("success");
   btnLabel.textContent = "✓  Hunt again";
-  copyBtn.disabled = false;
+  updateHuntEnabled();
 }
 
 // Smoothly crawl progress bar from `start` to `end` over `ms` milliseconds
@@ -295,13 +390,13 @@ function huntFailed(msg) {
   progressSection.style.display = "none";
   copyBtn.classList.add("error");
   btnLabel.textContent = "✕  Try again";
-  copyBtn.disabled = false;
+  updateHuntEnabled();
   showToast(msg);
 
   setTimeout(() => {
     copyBtn.classList.remove("error");
     btnLabel.textContent = "Hunt Profiles";
-    copyBtn.disabled = false;
+    updateHuntEnabled();
   }, 2500);
 }
 
@@ -325,3 +420,4 @@ function showToast(msg) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 scanPage();
+loadBoards();

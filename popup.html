@@ -49,6 +49,21 @@
         <div class="selector-value" id="selectorValue">main</div>
       </div>
 
+      <!-- Trello board picker -->
+      <div class="board-block">
+        <div class="board-row">
+          <div class="selector-label">Trello board</div>
+          <button class="board-refresh" id="boardRefresh" title="Reload boards">&#8635;</button>
+        </div>
+        <select class="board-select" id="boardSelect" disabled>
+          <option value="">Loading boards…</option>
+        </select>
+        <label class="board-remember">
+          <input type="checkbox" id="rememberBoard" />
+          <span>Remember this board</span>
+        </label>
+      </div>
+
       <!-- Hunt button -->
       <button class="copy-btn" id="copyBtn" disabled>
         <svg class="btn-icon" id="btnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none"

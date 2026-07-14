@@ -3,11 +3,11 @@
   "name": "LinkedIn Profile Hunter",
   "version": "2.0.0",
   "description": "One-click copy of target div HTML from any LinkedIn page.",
-  "permissions": ["activeTab", "clipboardWrite", "scripting", "tabs"],
+  "permissions": ["activeTab", "clipboardWrite", "scripting", "tabs", "storage"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://linkedin.com/*",
-    "http://portal.globalleadersinc.com/*"
+    "https://portal.globalleadersinc.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
