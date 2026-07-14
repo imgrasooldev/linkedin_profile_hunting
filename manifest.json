@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Profile Hunter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "One-click copy of target div HTML from any LinkedIn page.",
   "permissions": ["activeTab", "clipboardWrite", "scripting", "tabs", "storage"],
   "host_permissions": [
